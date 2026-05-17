@@ -3,94 +3,87 @@ import urllib.parse
 import json
 import time
 
-TOKEN = "8838979890:AAE1cglbrlgwqd8g6xzI9zBZzb7QW51bBnI"
+TOKEN = "8838979890:AAE1cglbrlgwqd8g6xzI9zBZzb7QW51bBnI"  # <-- Вставьте токен вашего бота
 URL = f"https://api.telegram.org/bot{TOKEN}/"
 
+# -----------------------
+# ВОПРОСЫ С БАЛЛАМИ
+# -----------------------
 quiz = {
     "Математика": [
-        ("7 × 8 = ?", ["54", "56", "64", "48"], "56"),
-        ("Корень из 81?", ["7", "8", "9", "6"], "9"),
-        ("5² = ?", ["10", "15", "20", "25"], "25"),
-        ("12 : 3 = ?", ["2", "3", "4", "5"], "4"),
-        ("Сколько сторон у треугольника?", ["2", "3", "4", "5"], "3"),
-        ("90 + 10 = ?", ["80", "90", "100", "110"], "100"),
+        {"question": "7 × 8 = ?", "options": ["54", "56", "64", "48"], "answer": "56", "points": 100},
+        {"question": "Корень из 81?", "options": ["7", "8", "9", "6"], "answer": "9", "points": 200},
+        {"question": "5² = ?", "options": ["10", "15", "20", "25"], "answer": "25", "points": 300},
+        {"question": "12 : 3 = ?", "options": ["2", "3", "4", "5"], "answer": "4", "points": 400},
+        {"question": "Сколько сторон у треугольника?", "options": ["2", "3", "4", "5"], "answer": "3", "points": 500},
+        {"question": "90 + 10 = ?", "options": ["80", "90", "100", "110"], "answer": "100", "points": 600},
     ],
-
     "Русский": [
-        ("Сколько букв в русском алфавите?", ["31", "32", "33", "34"], "33"),
-        ("Укажи существительное", ["Бежать", "Красивый", "Стол", "Быстро"], "Стол"),
-        ("Антоним слова 'день'", ["Утро", "Свет", "Ночь", "Вечер"], "Ночь"),
-        ("Сколько падежей?", ["5", "6", "7", "8"], "6"),
-        ("Какое слово — глагол?", ["Играть", "Дом", "Яркий", "Красиво"], "Играть"),
-        ("Главный член предложения?", ["Предлог", "Союз", "Подлежащее", "Частица"], "Подлежащее"),
+        {"question": "Сколько букв в русском алфавите?", "options": ["31", "32", "33", "34"], "answer": "33", "points": 100},
+        {"question": "Укажи существительное", "options": ["Бежать", "Красивый", "Стол", "Быстро"], "answer": "Стол", "points": 200},
+        {"question": "Антоним слова 'день'", "options": ["Утро", "Свет", "Ночь", "Вечер"], "answer": "Ночь", "points": 300},
+        {"question": "Сколько падежей?", "options": ["5", "6", "7", "8"], "answer": "6", "points": 400},
+        {"question": "Какое слово — глагол?", "options": ["Играть", "Дом", "Яркий", "Красиво"], "answer": "Играть", "points": 500},
+        {"question": "Главный член предложения?", "options": ["Предлог", "Союз", "Подлежащее", "Частица"], "answer": "Подлежащее", "points": 600},
     ],
-
     "Английский": [
-        ("Перевод слова cat", ["Собака", "Кошка", "Мышь", "Птица"], "Кошка"),
-        ("Hello =", ["Пока", "Спасибо", "Привет", "Да"], "Привет"),
-        ("red =", ["Синий", "Красный", "Белый", "Чёрный"], "Красный"),
-        ("I ___ a student", ["am", "is", "are", "be"], "am"),
-        ("school =", ["Школа", "Книга", "Дом", "Окно"], "Школа"),
-        ("book → мн. число", ["book", "bookes", "books", "books'"], "books"),
+        {"question": "Перевод слова cat", "options": ["Собака", "Кошка", "Мышь", "Птица"], "answer": "Кошка", "points": 100},
+        {"question": "Hello =", "options": ["Пока", "Спасибо", "Привет", "Да"], "answer": "Привет", "points": 200},
+        {"question": "red =", "options": ["Синий", "Красный", "Белый", "Чёрный"], "answer": "Красный", "points": 300},
+        {"question": "I ___ a student", "options": ["am", "is", "are", "be"], "answer": "am", "points": 400},
+        {"question": "school =", "options": ["Школа", "Книга", "Дом", "Окно"], "answer": "Школа", "points": 500},
+        {"question": "book → мн. число", "options": ["book", "bookes", "books", "books'"], "answer": "books", "points": 600},
     ],
-
     "История": [
-        ("Первый космонавт?", ["Гагарин", "Титов", "Королёв", "Леонов"], "Гагарин"),
-        ("ВОВ началась в", ["1939", "1940", "1941", "1945"], "1941"),
-        ("Столица Древней Руси", ["Москва", "Киев", "Минск", "Новгород"], "Киев"),
-        ("Кто основал СПБ?", ["Пётр I", "Ленин", "Екатерина II", "Иван Грозный"], "Пётр I"),
-        ("Первый президент РФ?", ["Путин", "Ельцин", "Медведев", "Горбачёв"], "Ельцин"),
-        ("Богатыри были в", ["Руси", "Риме", "Японии", "Греции"], "Руси"),
+        {"question": "Первый космонавт?", "options": ["Гагарин", "Титов", "Королёв", "Леонов"], "answer": "Гагарин", "points": 100},
+        {"question": "ВОВ началась в", "options": ["1939", "1940", "1941", "1945"], "answer": "1941", "points": 200},
+        {"question": "Столица Древней Руси", "options": ["Москва", "Киев", "Минск", "Новгород"], "answer": "Киев", "points": 300},
+        {"question": "Кто основал СПБ?", "options": ["Пётр I", "Ленин", "Екатерина II", "Иван Грозный"], "answer": "Пётр I", "points": 400},
+        {"question": "Первый президент РФ?", "options": ["Путин", "Ельцин", "Медведев", "Горбачёв"], "answer": "Ельцин", "points": 500},
+        {"question": "Богатыри были в", "options": ["Руси", "Риме", "Японии", "Греции"], "answer": "Руси", "points": 600},
     ],
-
     "Физика": [
-        ("Единица силы", ["Ватт", "Ньютон", "Вольт", "Ампер"], "Ньютон"),
-        ("Прибор температуры", ["Весы", "Термометр", "Линейка", "Амперметр"], "Термометр"),
-        ("Что быстрее света?", ["Самолёт", "Звук", "Ничего", "Ракета"], "Ничего"),
-        ("Сколько планет?", ["7", "8", "9", "10"], "8"),
-        ("Что притягивает к Земле?", ["Ветер", "Гравитация", "Магнит", "Сила"], "Гравитация"),
-        ("Единица напряжения", ["Ом", "Ампер", "Вольт", "Ватт"], "Вольт"),
+        {"question": "Единица силы", "options": ["Ватт", "Ньютон", "Вольт", "Ампер"], "answer": "Ньютон", "points": 100},
+        {"question": "Прибор температуры", "options": ["Весы", "Термометр", "Линейка", "Амперметр"], "answer": "Термометр", "points": 200},
+        {"question": "Что быстрее света?", "options": ["Самолёт", "Звук", "Ничего", "Ракета"], "answer": "Ничего", "points": 300},
+        {"question": "Сколько планет?", "options": ["7", "8", "9", "10"], "answer": "8", "points": 400},
+        {"question": "Что притягивает к Земле?", "options": ["Ветер", "Гравитация", "Магнит", "Сила"], "answer": "Гравитация", "points": 500},
+        {"question": "Единица напряжения", "options": ["Ом", "Ампер", "Вольт", "Ватт"], "answer": "Вольт", "points": 600},
     ],
-
     "Информатика": [
-        ("Главное устройство ПК", ["Мышь", "Монитор", "Процессор", "Клавиатура"], "Процессор"),
-        ("Сколько бит в байте?", ["4", "8", "16", "32"], "8"),
-        ("Что хранит файлы?", ["Колонки", "Монитор", "Жёсткий диск", "Мышь"], "Жёсткий диск"),
-        ("Python это", ["Игра", "Браузер", "Язык программирования", "Сайт"], "Язык программирования"),
-        ("Кнопка удаления символа", ["Shift", "Enter", "Backspace", "Alt"], "Backspace"),
-        ("Интернет это", ["Монитор", "Программа", "Сеть", "Игра"], "Сеть"),
+        {"question": "Главное устройство ПК", "options": ["Мышь", "Монитор", "Процессор", "Клавиатура"], "answer": "Процессор", "points": 100},
+        {"question": "Сколько бит в байте?", "options": ["4", "8", "16", "32"], "answer": "8", "points": 200},
+        {"question": "Что хранит файлы?", "options": ["Колонки", "Монитор", "Жёсткий диск", "Мышь"], "answer": "Жёсткий диск", "points": 300},
+        {"question": "Python это", "options": ["Игра", "Браузер", "Язык программирования", "Сайт"], "answer": "Язык программирования", "points": 400},
+        {"question": "Кнопка удаления символа", "options": ["Shift", "Enter", "Backspace", "Alt"], "answer": "Backspace", "points": 500},
+        {"question": "Интернет это", "options": ["Монитор", "Программа", "Сеть", "Игра"], "answer": "Сеть", "points": 600},
     ]
 }
 
-
+# -----------------------
+# ПОЛЬЗОВАТЕЛИ
+# -----------------------
 users = {}
 
+# -----------------------
+# API
+# -----------------------
 def api(method, data=None):
     if data:
         data = urllib.parse.urlencode(data).encode()
-
     req = urllib.request.urlopen(URL + method, data=data)
     return json.loads(req.read().decode())
 
 def send_message(chat_id, text, keyboard=None, inline=None):
-
-    data = {
-        "chat_id": chat_id,
-        "text": text
-    }
-
+    data = {"chat_id": chat_id, "text": text}
     markup = {}
-
     if keyboard:
         markup["keyboard"] = keyboard
         markup["resize_keyboard"] = True
-
     if inline:
         markup["inline_keyboard"] = inline
-
     if markup:
         data["reply_markup"] = json.dumps(markup)
-
     api("sendMessage", data)
 
 def edit_message(chat_id, message_id, text, inline=None):
@@ -114,13 +107,20 @@ def answer_callback(callback_id, text=""):
         "text": text
     })
 
+# -----------------------
+# КЛАВИАТУРА
+# -----------------------
 
 main_keyboard = [
     [{"text": "Начать"}],
     [{"text": "Правильные ответы"}],
     [{"text": "Создатель"}],
-    [{"text": "Сбросить"}],
+    [{"text": "Сбросить"}]
 ]
+
+# -----------------------
+# ПОЛЬЗОВАТЕЛЬ
+# -----------------------
 
 def init_user(user_id):
 
@@ -131,38 +131,15 @@ def init_user(user_id):
             "teams_count": 0,
             "team_names": [],
             "scores": {},
-            "current_team": None,
             "solved": {},
+            "current_team": None,
+            "current_subject": None,
             "current_question": None
         }
 
-def subjects_inline():
-
-    buttons = []
-
-    for subject in quiz.keys():
-        buttons.append([
-            {
-                "text": subject,
-                "callback_data": f"subject|{subject}"
-            }
-        ])
-
-    return buttons
-
-def answers_inline():
-
-    buttons = []
-
-    for subject in quiz.keys():
-        buttons.append([
-            {
-                "text": subject,
-                "callback_data": f"answers|{subject}"
-            }
-        ])
-
-    return buttons
+# -----------------------
+# INLINE КНОПКИ
+# -----------------------
 
 def teams_inline(user_id):
 
@@ -181,8 +158,24 @@ def teams_inline(user_id):
 
     return buttons
 
+def subjects_inline():
 
-def get_question(user_id, subject):
+    buttons = []
+
+    for subject in quiz.keys():
+
+        buttons.append([
+            {
+                "text": subject,
+                "callback_data": f"subject|{subject}"
+            }
+        ])
+
+    return buttons
+
+def question_points_inline(user_id, subject):
+
+    buttons = []
 
     solved = users[user_id]["solved"]
 
@@ -192,9 +185,41 @@ def get_question(user_id, subject):
     for i, q in enumerate(quiz[subject]):
 
         if i not in solved[subject]:
-            return i, q
 
-    return None, None
+            buttons.append([
+                {
+                    "text": f"{q['points']}",
+                    "callback_data": f"pick|{subject}|{i}"
+                }
+            ])
+
+    buttons.append([
+        {
+            "text": "Назад",
+            "callback_data": "back_subjects"
+        }
+    ])
+
+    return buttons
+
+def answers_inline():
+
+    buttons = []
+
+    for subject in quiz.keys():
+
+        buttons.append([
+            {
+                "text": subject,
+                "callback_data": f"answers|{subject}"
+            }
+        ])
+
+    return buttons
+
+# -----------------------
+# ОСНОВНОЙ ЦИКЛ
+# -----------------------
 
 offset = 0
 
@@ -209,14 +234,18 @@ while True:
 
         offset = update["update_id"]
 
-        # ================= CALLBACK =================
+        # =========================
+        # CALLBACK
+        # =========================
 
         if "callback_query" in update:
 
             call = update["callback_query"]
 
             data = call["data"]
+
             chat_id = call["message"]["chat"]["id"]
+
             message_id = call["message"]["message_id"]
 
             callback_id = call["id"]
@@ -225,57 +254,9 @@ while True:
 
             parts = data.split("|")
 
-            # ===== ВЫБОР ПРЕДМЕТА =====
+            # ---------------- TEAM ----------------
 
-            if parts[0] == "subject":
-
-                subject = parts[1]
-
-                users[chat_id]["current_subject"] = subject
-
-                index, q = get_question(chat_id, subject)
-
-                if q is None:
-
-                    edit_message(
-                        chat_id,
-                        message_id,
-                        "Все вопросы этого предмета решены."
-                    )
-
-                else:
-
-                    users[chat_id]["current_question"] = index
-
-                    buttons = []
-
-                    for ans in q[1]:
-
-                        buttons.append([
-                            {
-                                "text": ans,
-                                "callback_data": f"answer|{ans}"
-                            }
-                        ])
-
-                    text = (
-                        f"Команда: {users[chat_id]['current_team']}\n"
-                        f"Предмет: {subject}\n\n"
-                        f"{q[0]}"
-                    )
-
-                    edit_message(
-                        chat_id,
-                        message_id,
-                        text,
-                        buttons
-                    )
-
-                answer_callback(callback_id)
-
-            # ===== ВЫБОР КОМАНДЫ =====
-
-            elif parts[0] == "team":
+            if parts[0] == "team":
 
                 team = parts[1]
 
@@ -284,13 +265,69 @@ while True:
                 edit_message(
                     chat_id,
                     message_id,
-                    f"Команда выбрана: {team}\n\nВыберите предмет:",
+                    f"Команда: {team}\n\nВыберите предмет:",
                     subjects_inline()
                 )
 
                 answer_callback(callback_id)
 
-            # ===== ОТВЕТ =====
+            # ---------------- SUBJECT ----------------
+
+            elif parts[0] == "subject":
+
+                subject = parts[1]
+
+                edit_message(
+                    chat_id,
+                    message_id,
+                    f"Предмет: {subject}\n\nВыберите стоимость вопроса:",
+                    question_points_inline(chat_id, subject)
+                )
+
+                answer_callback(callback_id)
+
+            # ---------------- PICK QUESTION ----------------
+
+            elif parts[0] == "pick":
+
+                subject = parts[1]
+
+                q_index = int(parts[2])
+
+                users[chat_id]["current_subject"] = subject
+
+                users[chat_id]["current_question"] = q_index
+
+                q = quiz[subject][q_index]
+
+                buttons = []
+
+                for ans in q["options"]:
+
+                    buttons.append([
+                        {
+                            "text": ans,
+                            "callback_data": f"answer|{ans}"
+                        }
+                    ])
+
+                text = (
+                    f"Команда: {users[chat_id]['current_team']}\n"
+                    f"Предмет: {subject}\n"
+                    f"Стоимость: {q['points']}\n\n"
+                    f"{q['question']}"
+                )
+
+                edit_message(
+                    chat_id,
+                    message_id,
+                    text,
+                    buttons
+                )
+
+                answer_callback(callback_id)
+
+            # ---------------- ANSWER ----------------
 
             elif parts[0] == "answer":
 
@@ -298,30 +335,35 @@ while True:
 
                 subject = users[chat_id]["current_subject"]
 
-                index = users[chat_id]["current_question"]
+                q_index = users[chat_id]["current_question"]
 
-                q = quiz[subject][index]
+                q = quiz[subject][q_index]
 
-                correct = q[2]
+                correct = q["answer"]
+
+                points = q["points"]
 
                 if user_answer == correct:
 
-                    users[chat_id]["solved"][subject].append(index)
+                    if subject not in users[chat_id]["solved"]:
+                        users[chat_id]["solved"][subject] = []
+
+                    users[chat_id]["solved"][subject].append(q_index)
 
                     team = users[chat_id]["current_team"]
 
-                    users[chat_id]["scores"][team] += 1
+                    users[chat_id]["scores"][team] += points
 
                     text = (
-                        "Верно!\n\n"
-                        f"Очки команды {team}: "
-                        f"{users[chat_id]['scores'][team]}"
+                        f"Верно!\n\n"
+                        f"+{points} очков команде {team}\n"
+                        f"Текущий счёт: {users[chat_id]['scores'][team]}"
                     )
 
                 else:
 
                     text = (
-                        "Неверно.\n\n"
+                        f"Неверно.\n\n"
                         f"Правильный ответ: {correct}"
                     )
 
@@ -334,27 +376,43 @@ while True:
 
                 answer_callback(callback_id)
 
-            # ===== ОТВЕТЫ =====
+            # ---------------- ANSWERS ----------------
 
             elif parts[0] == "answers":
 
                 subject = parts[1]
 
-                txt = f"Ответы: {subject}\n\n"
+                text = f"Ответы — {subject}\n\n"
 
                 for i, q in enumerate(quiz[subject], start=1):
-                    txt += f"{i}. {q[2]}\n"
+
+                    text += f"{q['points']} — {q['answer']}\n"
 
                 edit_message(
                     chat_id,
                     message_id,
-                    txt,
+                    text,
                     answers_inline()
                 )
 
                 answer_callback(callback_id)
 
-        # ================= MESSAGE =================
+            # ---------------- BACK ----------------
+
+            elif data == "back_subjects":
+
+                edit_message(
+                    chat_id,
+                    message_id,
+                    "Выберите предмет:",
+                    subjects_inline()
+                )
+
+                answer_callback(callback_id)
+
+        # =========================
+        # MESSAGE
+        # =========================
 
         elif "message" in update:
 
@@ -364,11 +422,12 @@ while True:
                 continue
 
             text = msg["text"]
+
             chat_id = msg["chat"]["id"]
 
             init_user(chat_id)
 
-            # ===== START =====
+            # ---------------- START ----------------
 
             if text == "/start":
 
@@ -378,7 +437,7 @@ while True:
                     keyboard=main_keyboard
                 )
 
-            # ===== СОЗДАТЕЛЬ =====
+            # ---------------- СОЗДАТЕЛЬ ----------------
 
             elif text == "Создатель":
 
@@ -387,7 +446,7 @@ while True:
                     "Бота создал Сакевич В. 10Э"
                 )
 
-            # ===== НАЧАТЬ =====
+            # ---------------- НАЧАТЬ ----------------
 
             elif text == "Начать":
 
@@ -398,7 +457,7 @@ while True:
                     "Введите количество команд:"
                 )
 
-            # ===== КОЛ-ВО КОМАНД =====
+            # ---------------- КОЛИЧЕСТВО КОМАНД ----------------
 
             elif users[chat_id]["stage"] == "teams_count":
 
@@ -407,7 +466,9 @@ while True:
                     count = int(text)
 
                     users[chat_id]["teams_count"] = count
+
                     users[chat_id]["team_names"] = []
+
                     users[chat_id]["scores"] = {}
 
                     users[chat_id]["stage"] = "team_names"
@@ -417,11 +478,12 @@ while True:
                         "Введите название команды 1:"
                     )
 
-            # ===== НАЗВАНИЯ КОМАНД =====
+            # ---------------- НАЗВАНИЯ КОМАНД ----------------
 
             elif users[chat_id]["stage"] == "team_names":
 
                 users[chat_id]["team_names"].append(text)
+
                 users[chat_id]["scores"][text] = 0
 
                 current = len(users[chat_id]["team_names"])
@@ -445,7 +507,7 @@ while True:
                         inline=teams_inline(chat_id)
                     )
 
-            # ===== ПРАВИЛЬНЫЕ ОТВЕТЫ =====
+            # ---------------- ПРАВИЛЬНЫЕ ОТВЕТЫ ----------------
 
             elif text == "Правильные ответы":
 
@@ -455,7 +517,7 @@ while True:
                     inline=answers_inline()
                 )
 
-            # ===== СБРОС =====
+            # ---------------- СБРОС ----------------
 
             elif text == "Сбросить":
 
@@ -464,6 +526,8 @@ while True:
                 users[chat_id]["solved"] = {}
 
                 users[chat_id]["team_names"] = []
+
+                users[chat_id]["stage"] = None
 
                 send_message(
                     chat_id,
