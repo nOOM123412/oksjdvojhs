@@ -12,7 +12,7 @@ bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
 # Путь к вашему фото (название 'huy.jpg' в папке с проектом)
-PHOTO_PATH = "huy.jpg"
+PHOTO_PATH = "huy.png"
 
 
 @dp.message(CommandStart())
