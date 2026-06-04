@@ -22,13 +22,13 @@ dp = Dispatcher()
 BASE_DIR = Path(__file__).parent.resolve()
 
 
-# Функция для поиска фото (код поиска путей не менялся)
+# Функция для поиска фото (логика не менялась)
 def get_photo_path():
     possible_paths = [
-        BASE_DIR / "Folder" / "huy.PNG",
-        BASE_DIR / "data" / "huy.PNG",
-        BASE_DIR / "huy.PNG",
-        Path("/app/Folder/huy.PNG"),
+        BASE_DIR / "Folder" / "huy.JPEG",
+        BASE_DIR / "data" / "huy.JPEG",
+        BASE_DIR / "huy.JPEG",
+        Path("/app/Folder/huy.JPEG"),
     ]
     for p in possible_paths:
         if p.exists():
@@ -38,10 +38,10 @@ def get_photo_path():
 
 # Определяем состояния анкеты
 class Questionnaire(StatesGroup):
-    source = State()  # Ожидание выбора источника
-    experience = State()  # Ожидание выбора опыта
-    time = State()  # Ожидание выбора времени
-    confirm = State()  # Ожидание подтверждения
+    source = State()
+    experience = State()
+    time = State()
+    confirm = State()
 
 
 # --- КНОПКИ (КЛАВИАТУРЫ) ---
@@ -109,16 +109,29 @@ kb_confirm = InlineKeyboardMarkup(
     ]
 )
 
+# 6. Кнопки Главного меню (по 2 в строку)
+kb_main_menu = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Направления", callback_data="menu_direct"),
+            InlineKeyboardButton(text="Профиль", callback_data="menu_profile"),
+        ],
+        [
+            InlineKeyboardButton(text="Настройки", callback_data="menu_settings"),
+            InlineKeyboardButton(text="О проекте", callback_data="menu_about"),
+        ],
+    ]
+)
 
-# --- ХЕНДЛЕРЫ / ЛОГИКА ---
+
+# --- ХЕНДЛЕРЫ ---
 
 
 # Команда /start
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
-    await state.clear()  # Сбрасываем состояние, если пользователь начал заново
+    await state.clear()
     photo_path = get_photo_path()
-
     caption_text = (
         "Добро пожаловать в UDD TEAM!\nДля продолжения отправьте заявку"
     )
@@ -129,16 +142,17 @@ async def cmd_start(message: types.Message, state: FSMContext):
             photo, caption=caption_text, reply_markup=kb_start
         )
     else:
-        # Если фото не найдено, отправляем хотя бы текст с кнопкой
         await message.answer(
             f"❌ Фото huy.PNG не найдено, но вы можете продолжить:\n\n{caption_text}",
             reply_markup=kb_start,
         )
 
 
-# Нажатие на кнопку "Отправить" на самом первом этапе
+# Нажатие на кнопку "Отправить" под первой картинкой
 @dp.callback_query(F.data == "start_anketa")
 async def start_questionnaire(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()  # Удаляем прошлое сообщение (картинку приветствия)
+
     await callback.message.answer(
         "Откуда Вы узнали о нас?", reply_markup=kb_source
     )
@@ -146,9 +160,11 @@ async def start_questionnaire(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 1: Обработка источника -> Вопрос про Опыт
+# Шаг 1: Обработка источника
 @dp.callback_query(Questionnaire.source, F.data.startswith("src_"))
 async def process_source(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()  # Удаляем вопрос "Откуда узнали"
+
     chosen_source = callback.data.split("_")[1]
     await state.update_data(source=chosen_source)
 
@@ -159,9 +175,11 @@ async def process_source(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 2: Обработка опыта -> Вопрос про Время
+# Шаг 2: Обработка опыта
 @dp.callback_query(Questionnaire.experience, F.data.startswith("exp_"))
 async def process_experience(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()  # Удаляем вопрос "Каков ваш опыт"
+
     chosen_exp = callback.data.split("_")[1]
     await state.update_data(experience=chosen_exp)
 
@@ -172,15 +190,15 @@ async def process_experience(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 3: Обработка времени -> Вывод анкеты на проверку
+# Шаг 3: Вывод анкеты
 @dp.callback_query(Questionnaire.time, F.data.startswith("tm_"))
 async def process_time(callback: types.CallbackQuery, state: FSMContext):
+    await callback.message.delete()  # Удаляем вопрос "Сколько времени"
+
     chosen_time = callback.data.split("_")[1]
     await state.update_data(time=chosen_time)
 
-    # Получаем все сохраненные ответы
     user_data = await state.get_data()
-
     summary_text = (
         f"Ваша заявка выглядит так:\n"
         f"{user_data['source']}\n"
@@ -194,11 +212,12 @@ async def process_time(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 4: Если пользователь нажал "Заново"
+# Шаг 4: Если нажали "Заново"
 @dp.callback_query(Questionnaire.confirm, F.data == "final_restart")
 async def process_restart(callback: types.CallbackQuery, state: FSMContext):
-    await state.clear()  # Очищаем данные
-    # Повторяем логику команды /start
+    await callback.message.delete()  # Удаляем сообщение с проверкой анкеты
+    await state.clear()
+
     await callback.message.answer(
         "Откуда Вы узнали о нас?", reply_markup=kb_source
     )
@@ -206,23 +225,38 @@ async def process_restart(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 4: Если пользователь нажал "Отправить" (Финальный этап)
+# Шаг 4: Если нажали "Отправить"
 @dp.callback_query(Questionnaire.confirm, F.data == "final_send")
 async def process_send(callback: types.CallbackQuery, state: FSMContext):
-    await state.clear()  # Очищаем состояние анкеты
-    await callback.message.answer("Ваша заявка отправлена администрации!")
+    await callback.message.delete()  # Удаляем сообщение с проверкой анкеты
+    await state.clear()
+
+    # Отправляем уведомление
+    status_msg = await callback.message.answer(
+        "Ваша заявка отправлена администрации!"
+    )
     await callback.answer()
 
-    # Асинхронная пауза на 9 секунд
+    # Ждем 9 секунд
     await asyncio.sleep(9)
 
-    # Отправка Главного меню с фотографией huy.PNG
+    # Удаляем уведомление об отправке, чтобы чат остался чистым перед меню
+    try:
+        await status_msg.delete()
+    except Exception:
+        pass
+
+    # Отправка Главного меню с фото и 4 кнопками
     photo_path = get_photo_path()
     if photo_path:
         photo = FSInputFile(photo_path)
-        await callback.message.answer_photo(photo, caption="Главное меню:")
+        await callback.message.answer_photo(
+            photo, caption="Главное меню:", reply_markup=kb_main_menu
+        )
     else:
-        await callback.message.answer("Главное меню:\n(Фото huy.PNG не найдено)")
+        await callback.message.answer(
+            "Главное меню:\n(Фото huy.PNG не найдено)", reply_markup=kb_main_menu
+        )
 
 
 async def main():
