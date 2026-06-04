@@ -1,5 +1,6 @@
 import asyncio
 import os
+from pathlib import Path
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import FSInputFile
@@ -11,26 +12,26 @@ BOT_TOKEN = "8687946018:AAGq59OQfV3PKInGTdZDyy69RBWar0w-qDc"
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 
-# Путь к вашему фото (название 'huy.jpg' в папке с проектом)
-PHOTO_PATH = "huy.png"
+# Строим относительный путь: app/Folder/huy.jpg
+# Path(__file__).parent берет папку, в которой лежит этот скрипт bot.py
+PHOTO_PATH = Path(__file__).parent / "app" / "Folder" / "huy.png"
 
 
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message):
-    # Проверяем, существует ли файл, чтобы бот не упал с ошибкой
-    if os.path.exists(PHOTO_PATH):
-        # Используем FSInputFile для отправки локального файла
+    # Проверяем, существует ли файл по указанному пути
+    if PHOTO_PATH.exists():
+        # Передаем объект Path в FSInputFile
         photo = FSInputFile(PHOTO_PATH)
-        await message.answer_photo(photo, caption="Привет! Вот твое фото.")
+        await message.answer_photo(photo, caption="Вот фото из папки app/Folder!")
     else:
         await message.answer(
-            f"Ошибка: Файл {PHOTO_PATH} не найден в папке с проектом."
+            f"Ошибка: Файл не найден по пути: {PHOTO_PATH.resolve()}"
         )
 
 
 async def main():
-    print("Бот запущен и готов к работе...")
-    # Запускаем поллинг (опрос серверов Telegram)
+    print("Бот запущен...")
     await dp.start_polling(bot)
 
 
