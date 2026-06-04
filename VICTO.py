@@ -25,10 +25,10 @@ BASE_DIR = Path(__file__).parent.resolve()
 # Функция для поиска фото (логика не менялась)
 def get_photo_path():
     possible_paths = [
-        BASE_DIR / "Folder" / "huy.PNG",
-        BASE_DIR / "data" / "huy.PNG",
-        BASE_DIR / "huy.PNG",
-        Path("/app/Folder/huy.PNG"),
+        BASE_DIR / "Folder" / "huy.jpeg",
+        BASE_DIR / "data" / "huy.jpeg",
+        BASE_DIR / "huy.jpeg",
+        Path("/app/Folder/huy.jpeg"),
     ]
     for p in possible_paths:
         if p.exists():
