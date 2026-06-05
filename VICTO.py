@@ -168,7 +168,7 @@ kb_back_to_settings = InlineKeyboardMarkup(
 
 # --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЗОВА ГЛАВНОГО МЕНЮ ---
 async def send_main_menu(message: types.Message):
-    photo_path = get_photo_path("huy.PNG")
+    photo_path = get_photo_path("huy.jpeg")
     if photo_path:
         photo = FSInputFile(photo_path)
         await message.answer_photo(
@@ -191,7 +191,7 @@ async def cmd_start(message: types.Message, state: FSMContext):
     if message.from_user.id not in user_registration_dates:
         user_registration_dates[message.from_user.id] = datetime.now()
 
-    photo_path = get_photo_path("huy.PNG")
+    photo_path = get_photo_path("huy.jpeg")
     caption_text = (
         "Добро пожаловать в UDD TEAM!\nДля продолжения отправьте заявку"
     )
@@ -440,7 +440,7 @@ async def menu_about(callback: types.CallbackQuery):
         "Ворк"
     )
 
-    photo_path = get_photo_path("huy.PNG")  # Ищем картинку в папке проекта
+    photo_path = get_photo_path("huy.jpeg")  # Ищем картинку в папке проекта
 
     if photo_path:
         await callback.message.answer_photo(
