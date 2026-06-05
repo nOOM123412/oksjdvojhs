@@ -168,7 +168,7 @@ kb_back_to_settings = InlineKeyboardMarkup(
 
 # --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЗОВА ГЛАВНОГО МЕНЮ ---
 async def send_main_menu(message: types.Message):
-    photo_path = get_photo_path("huy.jpeg")
+    photo_path = get_photo_path("MM.png")
     if photo_path:
         photo = FSInputFile(photo_path)
         await message.answer_photo(
@@ -306,7 +306,7 @@ async def back_to_menu(callback: types.CallbackQuery):
 @dp.callback_query(F.data == "menu_direct")
 async def menu_directions(callback: types.CallbackQuery):
     await callback.message.delete()
-    photo_path = get_photo_path("Nap.PNG")
+    photo_path = get_photo_path("Nap.png")
     text = "Сейчас доступны 2 направления:"
 
     if photo_path:
@@ -371,7 +371,7 @@ async def menu_profile(callback: types.CallbackQuery):
         f"В команде: {days_in_team} дн."
     )
 
-    photo_path = get_photo_path("Pro.PNG")
+    photo_path = get_photo_path("Pro.png")
     if photo_path:
         await callback.message.answer_photo(
             FSInputFile(photo_path),
