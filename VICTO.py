@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime
 import os
 from pathlib import Path
 
@@ -21,14 +22,18 @@ dp = Dispatcher()
 # Базовая папка, где лежит VICTO.py (то есть /app)
 BASE_DIR = Path(__file__).parent.resolve()
 
+# Временная "база данных" для хранения даты регистрации пользователей (ID: datetime)
+user_registration_dates = {}
 
-# Функция для поиска фото (логика не менялась)
-def get_photo_path():
+
+# --- ФУНКЦИЯ ДЛЯ ПОИСКА ФОТО ---
+def get_photo_path(filename: str):
+    # Универсальный поиск файлов (huy.PNG, Nap.PNG, Pro.PNG, Set.PNG)
     possible_paths = [
-        BASE_DIR / "Folder" / "huy.jpeg",
-        BASE_DIR / "data" / "huy.jpeg",
-        BASE_DIR / "huy.jpeg",
-        Path("/app/Folder/huy.jpeg"),
+        BASE_DIR / "Folder" / filename,
+        BASE_DIR / "data" / filename,
+        BASE_DIR / filename,
+        Path(f"/app/Folder/{filename}"),
     ]
     for p in possible_paths:
         if p.exists():
@@ -46,14 +51,12 @@ class Questionnaire(StatesGroup):
 
 # --- КНОПКИ (КЛАВИАТУРЫ) ---
 
-# 1. Кнопка "Отправить заявку"
 kb_start = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Отправить", callback_data="start_anketa")]
     ]
 )
 
-# 2. Кнопки "Откуда узнали" (по 2 в строку)
 kb_source = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -69,7 +72,6 @@ kb_source = InlineKeyboardMarkup(
     ]
 )
 
-# 3. Кнопки "Опыт работы" (по 2 в ряд)
 kb_experience = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -85,7 +87,6 @@ kb_experience = InlineKeyboardMarkup(
     ]
 )
 
-# 4. Кнопки "Время работы" (по 2 в ряд)
 kb_time = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -99,7 +100,6 @@ kb_time = InlineKeyboardMarkup(
     ]
 )
 
-# 5. Кнопки подтверждения (в одну строчку)
 kb_confirm = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -109,7 +109,7 @@ kb_confirm = InlineKeyboardMarkup(
     ]
 )
 
-# 6. Кнопки Главного меню (по 2 в строку)
+# Главное меню (по 2 в строку)
 kb_main_menu = InlineKeyboardMarkup(
     inline_keyboard=[
         [
@@ -123,15 +123,75 @@ kb_main_menu = InlineKeyboardMarkup(
     ]
 )
 
+# Кнопки раздела "Направления" (по 1 в строку)
+kb_directions = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Fake Н@рко", callback_data="dir_fake_narko")],
+        [InlineKeyboardButton(text="iCloud", callback_data="dir_icloud")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_menu")],
+    ]
+)
 
-# --- ХЕНДЛЕРЫ ---
+# Кнопки подраздела "Fake Н@рко" (по 1 в строку)
+kb_fake_narko = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Выбрать сеть", callback_data="fn_select_net")],
+        [InlineKeyboardButton(text="Создать зеркало", callback_data="fn_mirror")],
+        [InlineKeyboardButton(text="Назад", callback_data="menu_direct")],
+    ]
+)
+
+# Кнопка Назад для Профиля
+kb_back_only = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_menu")]
+    ]
+)
+
+# Кнопки раздела "Настройки" (по 1 в строку)
+kb_settings = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Ранги", callback_data="set_ranks")],
+        [InlineKeyboardButton(text="Выплаты", callback_data="set_payouts")],
+        [InlineKeyboardButton(text="Режим", callback_data="set_mode")],
+        [InlineKeyboardButton(text="Назад", callback_data="back_to_menu")],
+    ]
+)
+
+# Кнопка Назад для Рангов (возвращает в Настройки)
+kb_back_to_settings = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Назад", callback_data="menu_settings")]
+    ]
+)
 
 
-# Команда /start
+# --- ВСПОМОГАТЕЛЬНАЯ ФУНКЦИЯ ДЛЯ ВЫЗОВА ГЛАВНОГО МЕНЮ ---
+async def send_main_menu(message: types.Message):
+    photo_path = get_photo_path("huy.PNG")
+    if photo_path:
+        photo = FSInputFile(photo_path)
+        await message.answer_photo(
+            photo, caption="Главное меню:", reply_markup=kb_main_menu
+        )
+    else:
+        await message.answer(
+            "Главное меню:\n(Фото huy.PNG не найдено)", reply_markup=kb_main_menu
+        )
+
+
+# --- ХЕНДЛЕРЫ АНКЕТЫ ---
+
+
 @dp.message(CommandStart())
 async def cmd_start(message: types.Message, state: FSMContext):
     await state.clear()
-    photo_path = get_photo_path()
+
+    # Фиксируем дату регистрации, если пользователя еще нет в нашей "базе"
+    if message.from_user.id not in user_registration_dates:
+        user_registration_dates[message.from_user.id] = datetime.now()
+
+    photo_path = get_photo_path("huy.PNG")
     caption_text = (
         "Добро пожаловать в UDD TEAM!\nДля продолжения отправьте заявку"
     )
@@ -148,11 +208,9 @@ async def cmd_start(message: types.Message, state: FSMContext):
         )
 
 
-# Нажатие на кнопку "Отправить" под первой картинкой
 @dp.callback_query(F.data == "start_anketa")
 async def start_questionnaire(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()  # Удаляем прошлое сообщение (картинку приветствия)
-
+    await callback.message.delete()
     await callback.message.answer(
         "Откуда Вы узнали о нас?", reply_markup=kb_source
     )
@@ -160,14 +218,11 @@ async def start_questionnaire(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 1: Обработка источника
 @dp.callback_query(Questionnaire.source, F.data.startswith("src_"))
 async def process_source(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()  # Удаляем вопрос "Откуда узнали"
-
+    await callback.message.delete()
     chosen_source = callback.data.split("_")[1]
     await state.update_data(source=chosen_source)
-
     await callback.message.answer(
         "Каков ваш опыт работы?", reply_markup=kb_experience
     )
@@ -175,14 +230,11 @@ async def process_source(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 2: Обработка опыта
 @dp.callback_query(Questionnaire.experience, F.data.startswith("exp_"))
 async def process_experience(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()  # Удаляем вопрос "Каков ваш опыт"
-
+    await callback.message.delete()
     chosen_exp = callback.data.split("_")[1]
     await state.update_data(experience=chosen_exp)
-
     await callback.message.answer(
         "Сколько времени вы уделяете работе?", reply_markup=kb_time
     )
@@ -190,11 +242,9 @@ async def process_experience(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 3: Вывод анкеты
 @dp.callback_query(Questionnaire.time, F.data.startswith("tm_"))
 async def process_time(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()  # Удаляем вопрос "Сколько времени"
-
+    await callback.message.delete()
     chosen_time = callback.data.split("_")[1]
     await state.update_data(time=chosen_time)
 
@@ -206,18 +256,15 @@ async def process_time(callback: types.CallbackQuery, state: FSMContext):
         f"{user_data['time']}\n\n"
         f"Отправить?"
     )
-
     await callback.message.answer(summary_text, reply_markup=kb_confirm)
     await state.set_state(Questionnaire.confirm)
     await callback.answer()
 
 
-# Шаг 4: Если нажали "Заново"
 @dp.callback_query(Questionnaire.confirm, F.data == "final_restart")
 async def process_restart(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()  # Удаляем сообщение с проверкой анкеты
+    await callback.message.delete()
     await state.clear()
-
     await callback.message.answer(
         "Откуда Вы узнали о нас?", reply_markup=kb_source
     )
@@ -225,42 +272,191 @@ async def process_restart(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
 
 
-# Шаг 4: Если нажали "Отправить"
 @dp.callback_query(Questionnaire.confirm, F.data == "final_send")
 async def process_send(callback: types.CallbackQuery, state: FSMContext):
-    await callback.message.delete()  # Удаляем сообщение с проверкой анкеты
+    await callback.message.delete()
     await state.clear()
 
-    # Отправляем уведомление
     status_msg = await callback.message.answer(
         "Ваша заявка отправлена администрации!"
     )
     await callback.answer()
 
-    # Ждем 9 секунд
     await asyncio.sleep(9)
 
-    # Удаляем уведомление об отправке, чтобы чат остался чистым перед меню
     try:
         await status_msg.delete()
     except Exception:
         pass
 
-    # Отправка Главного меню с фото и 4 кнопками
-    photo_path = get_photo_path()
+    await send_main_menu(callback.message)
+
+
+# --- ХЕНДЛЕРЫ ГЛАВНОГО МЕНЮ И НАВИГАЦИИ ---
+
+# Возврат в главное меню по кнопке Назад
+@dp.callback_query(F.data == "back_to_menu")
+async def back_to_menu(callback: types.CallbackQuery):
+    await callback.message.delete()
+    await send_main_menu(callback.message)
+    await callback.answer()
+
+
+# 1. Раздел Направления
+@dp.callback_query(F.data == "menu_direct")
+async def menu_directions(callback: types.CallbackQuery):
+    await callback.message.delete()
+    photo_path = get_photo_path("Nap.PNG")
+    text = "Сейчас доступны 2 направления:"
+
     if photo_path:
-        photo = FSInputFile(photo_path)
         await callback.message.answer_photo(
-            photo, caption="Главное меню:", reply_markup=kb_main_menu
+            FSInputFile(photo_path), caption=text, reply_markup=kb_directions
         )
     else:
         await callback.message.answer(
-            "Главное меню:\n(Фото huy.PNG не найдено)", reply_markup=kb_main_menu
+            f"❌ Фото Nap.PNG не найдено\n\n{text}", reply_markup=kb_directions
         )
+    await callback.answer()
 
 
+# Подраздел Fake Н@рко
+@dp.callback_query(F.data == "dir_fake_narko")
+async def direction_fake_narko(callback: types.CallbackQuery):
+    await callback.message.delete()
+    await callback.message.answer(
+        'Мануал к данному направлению находится в разделе "О проекте"',
+        reply_markup=kb_fake_narko,
+    )
+    await callback.answer()
+
+
+# Заглушка для iCloud (при желании можно расширить)
+@dp.callback_query(F.data == "dir_icloud")
+async def direction_icloud(callback: types.CallbackQuery):
+    await callback.answer("Направление iCloud в разработке", show_alert=True)
+
+
+# Заглушки для кнопок внутри Fake Н@рко
+@dp.callback_query(F.data.in_({"fn_select_net", "fn_mirror"}))
+async def fake_narko_actions(callback: types.CallbackQuery):
+    await callback.answer("В разработке...", show_alert=True)
+
+
+# 2. Раздел Профиль
+@dp.callback_query(F.data == "menu_profile")
+async def menu_profile(callback: types.CallbackQuery):
+    await callback.message.delete()
+
+    # Получаем юзернейм или имя пользователя
+    username = callback.from_user.username
+    user_tag = f"@{username}" if username else callback.from_user.full_name
+
+    # Считаем разницу дней с момента регистрации
+    reg_date = user_registration_dates.get(
+        callback.from_user.id, datetime.now()
+    )
+    days_in_team = (datetime.now() - reg_date).days
+
+    profile_text = (
+        f"Твой профиль\n\n"
+        f"Статистика:\n"
+        f" ┠ Твоя касса: 0 $\n"
+        f" ┠ Кол-во профитов: 0 профитов\n"
+        f" ┠ Место в топе: N/A\n\n"
+        f"Информация и текущие настройки\n"
+        f" ├ Тег в профитах: {user_tag}\n"
+        f" ├ Статус: Воркер\n"
+        f" ├ Ранг: 🎓 Студент\n\n"
+        f"В команде: {days_in_team} дн."
+    )
+
+    photo_path = get_photo_path("Pro.PNG")
+    if photo_path:
+        await callback.message.answer_photo(
+            FSInputFile(photo_path),
+            caption=profile_text,
+            reply_markup=kb_back_only,
+        )
+    else:
+        await callback.message.answer(
+            f"❌ Фото Pro.PNG не найдено\n\n{profile_text}",
+            reply_markup=kb_back_only,
+        )
+    await callback.answer()
+
+
+# 3. Раздел Настройки
+@dp.callback_query(F.data == "menu_settings")
+async def menu_settings(callback: types.CallbackQuery):
+    await callback.message.delete()
+    photo_path = get_photo_path("Set.PNG")
+    text = "Это настройки, тут разбирайся сам"
+
+    if photo_path:
+        await callback.message.answer_photo(
+            FSInputFile(photo_path), caption=text, reply_markup=kb_settings
+        )
+    else:
+        await callback.message.answer(
+            f"❌ Фото Set.PNG не найдено\n\n{text}", reply_markup=kb_settings
+        )
+    await callback.answer()
+
+
+# Подраздел Настройки -> Ранги
+@dp.callback_query(F.data == "set_ranks")
+async def settings_ranks(callback: types.CallbackQuery):
+    await callback.message.delete()
+    ranks_text = (
+        "Твоя касса: 0$\n\n"
+        "Студент — от 0$\n"
+        "Чемпион — от 1 000$\n"
+        "Волк — от 3 000$\n"
+        "Легенда — от 5 000$\n"
+        "Босс — от 10 000$"
+    )
+    await callback.message.answer(ranks_text, reply_markup=kb_back_to_settings)
+    await callback.answer()
+
+
+# Заглушки для Выплат и Режима
+@dp.callback_query(F.data.in_({"set_payouts", "set_mode"}))
+async def settings_stubs(callback: types.CallbackQuery):
+    await callback.answer("В разработке...", show_alert=True)
+
+
+# 4. Раздел О проекте
+@dp.callback_query(F.data == "menu_about")
+async def menu_about(callback: types.CallbackQuery):
+    await callback.message.delete()
+    about_text = (
+        "ℹ️ ИНФОРМАЦИЯ О ПРОЕКТЕ UDD TEAM\n\n"
+        "🚀 Мы работаем с 01.03.2026, за это время сделаны 92 профитов на сумму 6,264 $\n\n"
+        "💸 Выплаты\n"
+        "┠ Прямой перевод - 85%\n"
+        "┖ Сервисы - 75%\n\n"
+        "⚡️ Состояние работы бота:\n"
+        "Ворк"
+    )
+
+    photo_path = get_photo_path("huy.PNG")  # Ищем картинку в папке проекта
+
+    if photo_path:
+        await callback.message.answer_photo(
+            FSInputFile(photo_path), caption=about_text, reply_markup=kb_back_only
+        )
+    else:
+        await callback.message.answer(
+            f"❌ Фото для раздела 'О проекте' не найдено\n\n{about_text}",
+            reply_markup=kb_back_only,
+        )
+    await callback.answer()
+
+
+# --- ЗАПУСК БОТА ---
 async def main():
-    print("Бот запущен...")
+    print("Бот успешно запущен...")
     await dp.start_polling(bot)
 
 
